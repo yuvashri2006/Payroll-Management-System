@@ -14,39 +14,66 @@ export async function renderAddEmployee() {
     const today = new Date().toISOString().split('T')[0];
 
     app.innerHTML = `
-        <div class="add-employee-container">
-            <h2>Add New Employee</h2>
-            <p class="error" id="add-employee-error" style="display: none;"></p>
-            <form id="add-employee-form" class="add-employee-form">
-                <div class="form-group">
-                    <label>First Name:</label>
-                    <input type="text" id="first-name" required />
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <div class="header-info">
+                    <h1>New Employee</h1>
+                    <p>Enter the details to add a new member to the team.</p>
                 </div>
-                <div class="form-group">
-                    <label>Last Name:</label>
-                    <input type="text" id="last-name" required />
+            </div>
+
+            <div class="form-container">
+                <div id="add-employee-error" class="error-box" style="display: none;">
+                    <i data-lucide="alert-circle" style="width: 18px"></i>
+                    <span id="error-message"></span>
                 </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="email" required />
-                </div>
-                <div class="form-group">
-                    <label>Position:</label>
-                    <input type="text" id="position" required />
-                </div>
-                <div class="form-group">
-                    <label>Salary:</label>
-                    <input type="number" id="salary" required />
-                </div>
-                <div class="form-group">
-                    <label>Date Hired:</label>
-                    <input type="date" id="date-hired" value="${today}" required />
-                </div>
-                <button type="submit" class="submit-btn">Add Employee</button>
-                <button type="button" id="cancel-btn" class="cancel-btn">Cancel</button>
-            </form>
+                <form id="add-employee-form" class="add-employee-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="first-name" placeholder="John" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="last-name" placeholder="Doe" required />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" placeholder="john.doe@company.com" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Job Position</label>
+                        <input type="text" id="position" placeholder="Software Engineer" required />
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Annual Salary (₹)</label>
+                            <input type="number" id="salary" placeholder="75000" min="0" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Date Hired</label>
+                            <input type="date" id="date-hired" value="${today}" required />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" style="flex: 2">
+                            Add Employee
+                        </button>
+                        <button type="button" id="cancel-btn" class="btn btn-outline" style="flex: 1">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     `;
+
+    if (window.lucide) window.lucide.createIcons();
 
     // Handle form submission
     const form = document.getElementById('add-employee-form');
@@ -69,8 +96,8 @@ export async function renderAddEmployee() {
             await api.addEmployee(employeeData);
             router.navigate('/dashboard');
         } catch (error) {
-            errorElement.textContent = error.message;
-            errorElement.style.display = 'block';
+            document.getElementById('error-message').textContent = error.message;
+            errorElement.style.display = 'flex';
         }
     });
 

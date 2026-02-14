@@ -1,40 +1,42 @@
-// Client-side router using History API
-class Router {
-    constructor() {
-        this.routes = {};
-        this.currentRoute = null;
+import { renderLogin } from './pages/login.js';
+import { renderDashboard } from './pages/dashboard.js';
+import { renderAddEmployee } from './pages/addEmployee.js';
+import { renderEmployeePortal } from './pages/employeePortal.js';
 
+export const router = {
+    routes: {
+        '/': renderLogin,
+        '/dashboard': renderDashboard,
+        '/add-employee': renderAddEmployee,
+        '/employee-portal': renderEmployeePortal,
+    },
+
+    navigate(path) {
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        // Basic Role Protection
+        if (path === '/dashboard' && user?.role !== 'admin') {
+            path = user?.role === 'employee' ? '/employee-portal' : '/';
+        }
+        if (path === '/employee-portal' && user?.role !== 'employee') {
+            path = user?.role === 'admin' ? '/dashboard' : '/';
+        }
+
+        window.history.pushState({}, '', path);
+        this.resolve();
+    },
+
+    resolve() {
+        const path = window.location.pathname;
+        const render = this.routes[path] || this.routes['/'];
+        render();
+    },
+
+    init() {
         // Handle browser back/forward buttons
         window.addEventListener('popstate', () => {
-            this.loadRoute(window.location.pathname);
+            this.resolve();
         });
+        this.resolve();
     }
-
-    // Register a route
-    addRoute(path, handler) {
-        this.routes[path] = handler;
-    }
-
-    // Navigate to a route
-    navigate(path) {
-        window.history.pushState({}, '', path);
-        this.loadRoute(path);
-    }
-
-    // Load and execute route handler
-    async loadRoute(path) {
-        this.currentRoute = path;
-        const handler = this.routes[path] || this.routes['/'];
-
-        if (handler) {
-            await handler();
-        }
-    }
-
-    // Initialize router
-    init() {
-        this.loadRoute(window.location.pathname);
-    }
-}
-
-export const router = new Router();
+};

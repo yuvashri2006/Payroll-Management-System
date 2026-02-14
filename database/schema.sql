@@ -21,9 +21,18 @@ CREATE TABLE IF NOT EXISTS employees (
 CREATE TABLE IF NOT EXISTS payrolls (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     employee_id INTEGER,
-    salary DECIMAL(10, 2),
-    pay_date DATE,
-    status TEXT DEFAULT 'pending', -- SQLite doesn't have ENUM
+    company_name TEXT,
+    basic_salary DECIMAL(10, 2),
+    allowances DECIMAL(10, 2),
+    pf_deduction DECIMAL(10, 2),
+    tax_deduction DECIMAL(10, 2),
+    insurance_deduction DECIMAL(10, 2),
+    leave_deduction DECIMAL(10, 2),
+    net_salary DECIMAL(10, 2),
+    month TEXT,
+    year INTEGER,
+    issue_date DATE,
+    status TEXT DEFAULT 'paid',
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 );
 
