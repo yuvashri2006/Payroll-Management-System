@@ -10,7 +10,7 @@ export default function Trash() {
     const [trashedEmployees, setTrashedEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -66,13 +66,11 @@ export default function Trash() {
                 <div className="dashboard-container fade-in">
                     {error && <div className="error-box" style={{ marginBottom: '1rem' }}>{error}</div>}
                     
-                    <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <div className="header-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            {!sidebarOpen && (
-                                <button onClick={() => setSidebarOpen(true)} className="btn btn-outline" style={{ padding: '0.5rem', border: 'none', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                                    <Menu style={{ width: '24px', height: '24px', color: 'var(--primary)' }} />
-                                </button>
-                            )}
+                    <div className="page-header" style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+                                <Menu size={24} />
+                            </button>
                             <div>
                                 <h1 style={{ margin: 0 }}>Trash</h1>
                                 <p style={{ margin: 0, marginTop: '0.25rem' }}>Deleted personnel records</p>

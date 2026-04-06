@@ -46,7 +46,7 @@ export default function PayrollStatus() {
     const { type } = useParams(); // 'confirmed' | 'rejected' | 'pending'
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
     const [payrolls, setPayrolls] = useState([]);
     const [loading, setLoading] = useState(true);
     const [viewingPayslip, setViewingPayslip] = useState(null);

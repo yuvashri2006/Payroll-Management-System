@@ -726,6 +726,7 @@ p {
 }
 
 /* Responsive Media Queries */
+/* Responsive Media Queries */
 @media (max-width: 1024px) {
     :root {
         --sidebar-width: 240px;
@@ -779,12 +780,15 @@ p {
     }
 
     .employee-table {
-        min-width: 600px;
+        min-width: 650px;
     }
 
     /* Modal Responsiveness */
     .modal-content {
         padding: 1.5rem;
+        margin: 1rem;
+        width: auto;
+        max-width: none;
     }
 
     .form-grid {
@@ -794,18 +798,19 @@ p {
     /* Payslip Responsiveness */
     .payslip-container {
         padding: 1.5rem;
-        margin: 1rem;
+        margin: 0.5rem;
+        width: auto;
     }
 
     .payslip-header {
         flex-direction: column;
-        align-items: center;
-        text-align: center;
         gap: 1.5rem;
+        text-align: center;
     }
 
     .payslip-title {
         text-align: center;
+        width: 100%;
     }
 
     .payslip-grid {
@@ -813,8 +818,54 @@ p {
         gap: 2rem;
     }
 
+    .net-pay-highlight {
+        padding: 1.5rem;
+    }
+
     .net-pay-highlight .amount {
-        font-size: 2.5rem;
+        font-size: 2rem;
+    }
+
+    /* Tabs Responsiveness */
+    .tabs {
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    /* Search Box Responsiveness */
+    .search-box, .search-box input {
+        width: 100% !important;
+    }
+
+    /* Login Responsiveness */
+    .login-container {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+
+    .login-container h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .stat-content .value {
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        width: 100%;
     }
 }
 

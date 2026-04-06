@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import Sidebar from '../components/Sidebar';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Menu } from 'lucide-react';
 
 export default function AddEmployee() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -49,13 +49,18 @@ export default function AddEmployee() {
             <Sidebar user={user} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
             <div style={{ flex: 1, overflowY: 'auto' }}>
                 <div className="dashboard-container fade-in">
-                    <div className="dashboard-header" style={{ marginBottom: '2rem' }}>
-                        <div className="header-info">
-                            <button onClick={() => navigate('/dashboard')} className="btn btn-outline btn-sm" style={{ marginBottom: '1.5rem' }}>
-                                <ArrowLeft style={{ width: '16px' }} /> Back to Dashboard
+                    <div className="page-header" style={{ marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+                                <Menu size={24} />
                             </button>
-                            <h1>New Employee</h1>
-                            <p>Enter the details to add a new member to the team.</p>
+                            <div className="header-info">
+                                <button onClick={() => navigate('/dashboard')} className="btn btn-outline btn-sm" style={{ marginBottom: '1rem' }}>
+                                    <ArrowLeft style={{ width: '16px' }} /> Back to Dashboard
+                                </button>
+                                <h1 style={{ margin: 0 }}>New Employee</h1>
+                                <p style={{ margin: 0 }}>Enter the details to add a new member to the team.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -67,7 +72,7 @@ export default function AddEmployee() {
                             </div>
                         )}
                         <form onSubmit={handleSubmit}>
-                            <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="form-grid">
                                 <div className="form-group">
                                     <label>First Name</label>
                                     <input type="text" name="first_name" placeholder="John" required />
@@ -88,7 +93,7 @@ export default function AddEmployee() {
                                 <input type="text" name="position" placeholder="Software Engineer" required />
                             </div>
 
-                            <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                            <div className="form-grid" style={{ marginTop: '1rem' }}>
                                 <div className="form-group">
                                     <label>Annual Package (LPA)</label>
                                     <input type="number" name="salary" placeholder="5.5" min="0" step="any" required />

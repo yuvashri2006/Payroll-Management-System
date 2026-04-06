@@ -21,7 +21,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
     const [viewingPayslip, setViewingPayslip] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showPayrollModal, setShowPayrollModal] = useState(false);
