@@ -5,21 +5,20 @@ import { renderPayslip } from '../components/payslipView.js';
 export async function renderEmployeePortal() {
     const app = document.getElementById('app');
 
-    // Check authentication
+    // Check authentication - allow guest access but with restricted UI
     const userStr = localStorage.getItem('user');
-    if (!userStr || JSON.parse(userStr).role !== 'employee') {
-        router.navigate('/');
-        return;
-    }
+    const user = userStr ? JSON.parse(userStr) : { username: 'Guest', role: 'guest' };
 
-    const user = JSON.parse(userStr);
+    const welcomeMsg = user.role === 'employee'
+        ? `Welcome, <strong>${user.username}</strong>. Verify your details to access your payslips.`
+        : `Please verify your identity to access your payroll documents.`;
 
     app.innerHTML = `
         <div class="dashboard-container">
             <div class="dashboard-header">
                 <div class="header-info">
                     <h1>Employee Portal</h1>
-                    <p>Welcome, <strong>${user.username}</strong>. View and download your payslips below.</p>
+                    <p>${welcomeMsg}</p>
                 </div>
                 <div class="header-actions">
                     <button id="logout-btn" class="btn btn-outline">
@@ -28,31 +27,105 @@ export async function renderEmployeePortal() {
                 </div>
             </div>
 
-            <div class="flex justify-between items-center" style="margin-bottom: 1.5rem">
-                <h3>My Payslip History</h3>
-                <div class="search-box">
-                    <input type="text" id="slip-search" placeholder="Search month, year or company..." class="form-control" style="width: 300px; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border);" />
-                </div>
+            <div id="verification-section" class="card" style="max-width: 500px; margin: 2rem auto; padding: 2rem;">
+                <h3 style="margin-bottom: 1.5rem; text-align: center;">Payslip Access</h3>
+                <form id="verify-form">
+                    <div class="form-group">
+                        <label>Your Full Name</label>
+                        <input type="text" id="verify-name" value="${user.username}" placeholder="Full Name" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Employee ID (YYNNN)</label>
+                        <input type="text" id="verify-id" placeholder="e.g. 26001" required />
+                    </div>
+                    <div class="flex gap-2" style="margin-top: 1rem;">
+                        <div class="form-group flex-1">
+                            <label>Month</label>
+                            <select id="verify-month" class="form-control" style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;" required>
+                                <option value="">Month</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Year</label>
+                            <input type="number" id="verify-year" value="${new Date().getFullYear()}" style="width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem;" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
+                        <i data-lucide="shield-check" style="width: 18px"></i> Verify & View Payslips
+                    </button>
+                    <div id="verify-error" class="error-box" style="display: none; margin-top: 1rem;"></div>
+                </form>
             </div>
 
-            <div id="payroll-list" class="card-table">
-                <div class="loading-spinner">Loading payslips...</div>
+            <div id="portal-content" style="display: none;">
+                <div class="flex justify-between items-center" style="margin-bottom: 1.5rem">
+                    <h3>My Payslip History</h3>
+                </div>
+
+                <div id="payroll-list" class="card-table">
+                    <div class="loading-spinner">Loading payslips...</div>
+                </div>
             </div>
         </div>
     `;
 
     if (window.lucide) window.lucide.createIcons();
 
-    // Fetch payrolls for this employee
-    try {
-        // Using the secure endpoint that only returns payrolls for the logged in user
-        const myPayrolls = await api.getMyPayrolls(user.id);
+    const verifyForm = document.getElementById('verify-form');
+    const verifySection = document.getElementById('verification-section');
+    const portalContent = document.getElementById('portal-content');
+    const verifyError = document.getElementById('verify-error');
 
+    verifyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fullName = document.getElementById('verify-name').value;
+        const employeeId = document.getElementById('verify-id').value;
+        const month = document.getElementById('verify-month').value;
+        const yearInput = document.getElementById('verify-year').value;
+        const year = parseInt(yearInput);
+
+        // Validation: Access year must be >= hiring year (from ID prefix)
+        const hiringYearShort = parseInt(employeeId.substring(0, 2));
+        const hiringYear = 2000 + hiringYearShort;
+
+        if (year < hiringYear) {
+            verifyError.textContent = `You cannot access payslips prior to your hiring year (${hiringYear}).`;
+            verifyError.style.display = 'flex';
+            return;
+        }
+
+        try {
+            verifyError.style.display = 'none';
+            const myPayrolls = await api.verifyEmployee(fullName, employeeId, month, year);
+
+            verifySection.style.display = 'none';
+            portalContent.style.display = 'block';
+            renderPortalContent(myPayrolls);
+
+        } catch (error) {
+            verifyError.textContent = error.message;
+            verifyError.style.display = 'flex';
+        }
+    });
+
+    function renderPortalContent(myPayrolls) {
         const listContainer = document.getElementById('payroll-list');
 
         function renderTable(data) {
             if (data.length === 0) {
-                listContainer.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">No payslips found.</div>';
+                listContainer.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">No payslips found for this ID.</div>';
                 return;
             }
 
@@ -112,20 +185,6 @@ export async function renderEmployeePortal() {
 
         renderTable(myPayrolls);
 
-        // Search Logic
-        const searchInput = document.getElementById('slip-search');
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = myPayrolls.filter(p =>
-                p.month.toLowerCase().includes(term) ||
-                p.year.toString().includes(term) ||
-                (p.company_name && p.company_name.toLowerCase().includes(term))
-            );
-            renderTable(filtered);
-        });
-
-    } catch (error) {
-        document.getElementById('payroll-list').innerHTML = `<div class="error-box">${error.message}</div>`;
     }
 
     // Event Listeners

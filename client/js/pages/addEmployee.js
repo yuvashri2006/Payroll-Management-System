@@ -51,8 +51,8 @@ export async function renderAddEmployee() {
 
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Annual Salary (₹)</label>
-                            <input type="number" id="salary" placeholder="75000" min="0" required />
+                            <label>Annual Package (LPA)</label>
+                            <input type="number" id="salary" placeholder="5.5" min="0" step="any" required />
                         </div>
                         <div class="form-group">
                             <label>Date Hired</label>
@@ -87,7 +87,7 @@ export async function renderAddEmployee() {
             last_name: document.getElementById('last-name').value,
             email: document.getElementById('email').value,
             position: document.getElementById('position').value,
-            salary: parseFloat(document.getElementById('salary').value),
+            salary: parseFloat(document.getElementById('salary').value) * 100000,
             date_hired: document.getElementById('date-hired').value,
         };
 

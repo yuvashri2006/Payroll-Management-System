@@ -5,7 +5,7 @@ import { renderPayslip } from '../components/payslipView.js';
 export async function renderDashboard() {
     const app = document.getElementById('app');
 
-    // Notification system
+    // Enhanced Notification system
     const showToast = (message, type = 'success') => {
         let container = document.querySelector('.toast-container');
         if (!container) {
@@ -17,8 +17,10 @@ export async function renderDashboard() {
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `
-            <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" style="width: 20px"></i>
-            <span>${message}</span>
+            <div class="stat-icon" style="width: 32px; height: 32px; background: none; color: inherit;">
+                <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" style="width: 20px"></i>
+            </div>
+            <span style="font-weight: 500;">${message}</span>
         `;
         container.appendChild(toast);
         if (window.lucide) window.lucide.createIcons();
@@ -26,7 +28,7 @@ export async function renderDashboard() {
         setTimeout(() => {
             toast.style.animation = 'fadeOut 0.3s ease-out forwards';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 4000);
     };
 
     // Check authentication
@@ -39,30 +41,37 @@ export async function renderDashboard() {
     const user = JSON.parse(userStr);
 
     // Show loading state
-    app.innerHTML = '<div class="loading">Loading...</div>';
+    app.innerHTML = `
+        <div class="loading-spinner">
+            <i data-lucide="loader-2" class="animate-spin" style="width: 48px; height: 48px;"></i>
+        </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
 
     try {
         // Fetch employees
         const employees = await api.getEmployees();
 
-        // Calculate basic stats
-        const totalSalary = employees.reduce((acc, emp) => acc + emp.salary, 0);
-        const avgSalary = employees.length > 0 ? (totalSalary / employees.length).toFixed(0) : 0;
+        // Calculate basic stats (Monthly Expenditure = Annual CTC / 12)
+        const totalMonthlySalary = employees.reduce((acc, emp) => acc + ((emp.salary || 0) / 12), 0);
 
-        // Render dashboard
+        // Header and Stats
         app.innerHTML = `
-            <div class="dashboard-container">
-                <div class="dashboard-header">
+            <div class="dashboard-container fade-in">
+                <div class="dashboard-header" style="margin-bottom: 1.5rem;">
                     <div class="header-info">
                         <h1>Payroll Dashboard</h1>
-                        <p>Welcome back, <strong>${user.username}</strong></p>
+                        <p>Enterprise Management System</p>
                     </div>
                     <div class="header-actions">
-                        <button id="logout-btn" class="btn btn-outline">
-                            <i data-lucide="log-out" style="width: 16px"></i> Sign Out
+                        <button id="view-trash-btn" class="btn btn-outline" style="color: var(--text-muted);">
+                            <i data-lucide="trash-2" style="width: 18px"></i> Trash
                         </button>
                         <button id="add-employee-btn" class="btn btn-primary">
-                            <i data-lucide="plus" style="width: 16px"></i> Add Employee
+                            <i data-lucide="plus" style="width: 18px"></i> Add New Employee
+                        </button>
+                        <button id="logout-btn" class="btn btn-outline" style="color: var(--error); border-color: var(--error);">
+                            <i data-lucide="log-out" style="width: 18px"></i>
                         </button>
                     </div>
                 </div>
@@ -71,115 +80,130 @@ export async function renderDashboard() {
                     <div class="stat-card">
                         <div class="stat-icon"><i data-lucide="users"></i></div>
                         <div class="stat-content">
-                            <h4>Total Employees</h4>
+                            <h4>Total Workforce</h4>
                             <div class="value">${employees.length}</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);"><i data-lucide="history"></i></div>
+                    <div class="stat-card" style="--primary: var(--accent);">
+                        <div class="stat-icon" style="color: var(--accent); background: rgba(16, 185, 129, 0.1);"><i data-lucide="banknote"></i></div>
                         <div class="stat-content">
-                            <h4>Payroll Cycle</h4>
-                            <div class="value">Active</div>
+                            <h4>Monthly Expenditure</h4>
+                            <div class="value">₹${Math.round(totalMonthlySalary || 0).toLocaleString('en-IN')}</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="--primary: var(--warning);">
+                        <div class="stat-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);"><i data-lucide="calendar"></i></div>
+                        <div class="stat-content">
+                            <h4>Active Cycle</h4>
+                            <div class="value">${new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date())}</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tabs" style="margin-bottom: 2rem;">
-                    <button id="tab-employees" class="tab-btn active">Employees</button>
-                    <button id="tab-history" class="tab-btn">Payroll History</button>
+                <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
+                    <div class="tabs">
+                        <button id="tab-employees" class="tab-btn active">Direct Reports</button>
+                        <button id="tab-history" class="tab-btn">Transaction Log</button>
+                    </div>
+                    <div class="search-box">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <input type="text" id="universal-search" placeholder="Quick search..." style="width: 320px; background: var(--bg-card);" />
+                        </div>
+                    </div>
                 </div>
 
                 <div id="employees-view" class="tab-content">
-                    <div class="flex justify-between items-center" style="margin-bottom: 1rem">
-                        <h3>Employee Directory</h3>
-                        <div class="search-box">
-                            <input type="text" id="emp-search" placeholder="Search by name or position..." class="form-control" style="width: 300px; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border);" />
-                        </div>
-                    </div>
-
-                    <div id="employee-table-container" class="card-table">
+                    <div id="employee-table-container" class="card-table"></div>
                 </div>
-            </div>
 
                 <div id="history-view" class="tab-content" style="display: none;">
-                    <div class="flex justify-between items-center" style="margin-bottom: 1rem">
-                        <h3>Processed Payrolls</h3>
-                        <div class="search-box">
-                            <input type="text" id="history-search" placeholder="Search by employee name..." class="form-control" style="width: 300px; padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid var(--border);" />
-                        </div>
-                    </div>
                     <div id="payroll-history-list" class="card-table">
-                        <div class="loading">Loading history...</div>
+                        <div class="loading-spinner">Loading history...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Payroll Modal -->
+            <!-- Enhanced Payroll Modal -->
             <div id="payroll-modal" class="modal-overlay" style="display: none;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3>Payroll: <span id="modal-emp-name"></span></h3>
+                        <div>
+                            <h3 id="modal-emp-name" style="margin-bottom: 0.25rem;"></h3>
+                            <p style="font-size: 0.875rem;">Generate official monthly payslip</p>
+                        </div>
                         <button id="close-modal" class="close-btn">&times;</button>
                     </div>
                     <form id="process-payroll-form">
                         <input type="hidden" id="modal-emp-id">
-                        <div class="form-grid">
+                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.5rem;">
                             <div class="form-group">
                                 <label>Company Name</label>
-                                <input type="text" id="company-name" value="Pon Industries" required />
+                                <input type="text" id="company-name" value="Pon Industries" readonly />
                             </div>
                             <div class="form-group">
-                                <label>Basic Salary</label>
-                                <input type="number" id="basic-salary" readonly />
+                                <label>Annual Package (LPA)</label>
+                                <input type="number" id="annual-ctc" step="any" />
                             </div>
-                        </div>
-                        <div class="form-grid">
                             <div class="form-group">
-                                <label>Allowances</label>
+                                <label>Basic Monthly <span style="font-size:0.75rem;color:var(--text-muted)">(auto)</span></label>
+                                <input type="number" id="basic-salary" readonly style="background:var(--bg-card);color:var(--text-muted);cursor:default;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Per Day Salary <span style="font-size:0.75rem;color:var(--text-muted)">(auto)</span></label>
+                                <input type="number" id="per-day-salary" readonly style="background:var(--bg-card);color:var(--text-muted);cursor:default;" />
+                            </div>
+                            <input type="hidden" id="days-worked" value="26" />
+                            <div class="form-group">
+                                <label>Performance Bonus</label>
                                 <input type="number" id="allowances" value="5000" />
                             </div>
                             <div class="form-group">
-                                <label>Insurance</label>
+                                <label>Insurance Premium</label>
                                 <input type="number" id="insurance" value="1000" />
                             </div>
-                        </div>
-                        <div class="form-grid">
                             <div class="form-group">
-                                <label>Leave Deductions</label>
-                                <input type="number" id="leave-deduction" value="0" />
-                            </div>
-                            <div class="form-group">
-                                <label>PF Deduction</label>
+                                <label>Provident Fund (PF)</label>
                                 <input type="number" id="pf-deduction" value="1800" />
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Month/Year</label>
-                            <div class="flex gap-2">
-                                    <select id="pay-month" style="flex: 2; padding: 0.5rem; border-radius: 8px;">
-                                        <option value="January">January</option>
-                                        <option value="February">February</option>
-                                        <option value="March">March</option>
-                                        <option value="April">April</option>
-                                        <option value="May">May</option>
-                                        <option value="June">June</option>
-                                        <option value="July">July</option>
-                                        <option value="August">August</option>
-                                        <option value="September">September</option>
-                                        <option value="October">October</option>
-                                        <option value="November">November</option>
-                                        <option value="December">December</option>
-                                    </select>
-                                    <input type="number" id="pay-year" value="2024" style="flex: 1; padding: 0.5rem; border-radius: 8px;" />
-                                </div>
+                            <div class="form-group">
+                                <label>Tax % <span style="font-size:0.75rem;color:var(--text-muted)">(applied on gross)</span></label>
+                                <input type="number" id="tax-percent" value="10" min="0" max="100" step="0.5" />
                             </div>
                             <div class="form-group">
-                                <label>Net Salary Payable</label>
-                                <div class="flex items-center gap-4">
-                                    <div id="live-net-salary" class="live-result">₹0</div>
-                                    <button type="submit" class="btn btn-primary" style="flex: 1">Confirm & Generate Payslip</button>
+                                <label>Tax Amount <span style="font-size:0.75rem;color:var(--text-muted)">(auto)</span></label>
+                                <input type="number" id="tax-amount" readonly style="background:var(--bg-card);color:var(--text-muted);cursor:default;" />
+                            </div>
+                            <div class="form-group">
+                                <label>Leave Days Taken <span style="font-size:0.75rem;color:var(--text-muted)">(salary deducted per day)</span></label>
+                                <input type="number" id="leave-deduction" value="0" min="0" step="1" />
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Payment Period</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <select id="pay-month">
+                                        ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => `<option value="${m}">${m}</option>`).join('')}
+                                    </select>
+                                    <input type="number" id="pay-year" value="${new Date().getFullYear()}" style="width: 100px" />
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="net-pay-highlight" style="padding: 0.5rem 0.75rem; margin-top: 0;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.5rem; opacity:0.85;">
+                                <span>Gross Salary</span>
+                                <span id="live-gross-salary" style="font-weight:600;">₹0</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.75rem; color:#f87171;">
+                                <span>Total Deductions</span>
+                                <span id="live-deductions" style="font-weight:600;">- ₹0</span>
+                            </div>
+                            <div style="border-top:1px solid rgba(255,255,255,0.15); padding-top:0.5rem;">
+                                <label>NET SALARY PAYABLE</label>
+                                <div id="live-net-salary" class="amount" style="font-size: 2rem;">₹0</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; font-size: 0.9rem; padding: 0.5rem;">
+                                <i data-lucide="check-circle" style="width: 16px"></i> Finalize & Send
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -189,12 +213,12 @@ export async function renderDashboard() {
             <div id="edit-modal" class="modal-overlay" style="display: none;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3>Edit Employee</h3>
+                        <h3>Edit Personnel File</h3>
                         <button id="close-edit-modal" class="close-btn">&times;</button>
                     </div>
                     <form id="edit-employee-form">
                         <input type="hidden" id="edit-emp-id">
-                        <div class="form-grid">
+                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div class="form-group">
                                 <label>First Name</label>
                                 <input type="text" id="edit-first-name" required />
@@ -205,26 +229,24 @@ export async function renderDashboard() {
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Email Address</label>
+                            <label>Corporate CRM Email</label>
                             <input type="email" id="edit-email" required />
                         </div>
-                        <div class="form-grid">
+                        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div class="form-group">
-                                <label>Position</label>
+                                <label>Designation</label>
                                 <input type="text" id="edit-position" required />
                             </div>
                             <div class="form-group">
-                                <label>Salary (Annual)</label>
-                                <input type="number" id="edit-salary" required />
+                                <label>Annual CTC</label>
+                                <input type="number" id="edit-salary" step="any" required />
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Hire Date</label>
+                            <label>Effective Date</label>
                             <input type="date" id="edit-date-hired" required />
                         </div>
-                        <div class="form-actions mt-4">
-                            <button type="submit" class="btn btn-primary" style="flex: 1">Save Changes</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Update Records</button>
                     </form>
                 </div>
             </div>
@@ -264,30 +286,33 @@ export async function renderDashboard() {
 
                 function renderHistoryTable(data) {
                     if (data.length === 0) {
-                        historyList.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">No payroll records found.</div>';
+                        historyList.innerHTML = '<div style="padding: 4rem; text-align: center; color: var(--text-muted);"><i data-lucide="inbox" style="width: 48px; height: 48px; opacity: 0.2; margin-bottom: 1rem;"></i><br>No transactions recorded yet.</div>';
+                        if (window.lucide) window.lucide.createIcons();
                     } else {
                         historyList.innerHTML = `
                             <table class="employee-table">
                                 <thead>
                                     <tr>
-                                        <th>Employee</th>
-                                        <th>Month/Year</th>
-                                        <th style="text-align: right">Net Salary</th>
+                                        <th>Beneficiary</th>
+                                        <th>Period</th>
+                                        <th style="text-align: right">Total Payout</th>
                                         <th style="text-align: right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     ${data.map(p => `
                                         <tr>
-                                            <td><strong>${p.first_name} ${p.last_name}</strong></td>
-                                            <td>${p.month} ${p.year}</td>
-                                            <td style="text-align: right" class="emp-salary">₹${p.net_salary.toLocaleString('en-IN')}</td>
+                                            <td>
+                                                <div class="emp-name" style="font-weight: 700;">${p.first_name} ${p.last_name}</div>
+                                            </td>
+                                            <td><span style="font-weight: 500;">${p.month && p.year ? `${p.month} ${p.year}` : 'N/A'}</span></td>
+                                            <td style="text-align: right; color: var(--accent); font-weight: 700;">₹${(p.net_salary || 0).toLocaleString('en-IN')}</td>
                                             <td style="text-align: right">
                                                 <div class="flex gap-2 justify-end">
                                                     <button class="btn btn-outline btn-sm view-slip-btn" data-id="${p.id}">
                                                         <i data-lucide="eye" style="width: 14px"></i>
                                                     </button>
-                                                    <button class="btn btn-error btn-sm delete-payroll-btn" data-id="${p.id}">
+                                                    <button class="btn btn-outline btn-sm delete-payroll-btn" data-id="${p.id}" style="color: var(--error);">
                                                         <i data-lucide="trash-2" style="width: 14px"></i>
                                                     </button>
                                                 </div>
@@ -301,12 +326,13 @@ export async function renderDashboard() {
 
                         document.querySelectorAll('.delete-payroll-btn').forEach(btn => {
                             btn.addEventListener('click', async () => {
-                                if (confirm('Are you sure you want to delete this payroll record?')) {
+                                if (confirm('Irreversibly delete this transaction?')) {
                                     try {
                                         await api.deletePayroll(btn.dataset.id);
+                                        showToast('Transaction deleted', 'success');
                                         loadPayrollHistory();
                                     } catch (error) {
-                                        alert('Error deleting payroll: ' + error.message);
+                                        showToast(error.message, 'error');
                                     }
                                 }
                             });
@@ -317,14 +343,17 @@ export async function renderDashboard() {
                                 const p = data.find(item => item.id == btn.dataset.id);
                                 if (p) {
                                     app.innerHTML = `
-                                        <div class="dashboard-container">
+                                        <div class="dashboard-container fade-in">
                                             <div class="dashboard-header no-print">
                                                 <div class="header-info">
-                                                    <button id="back-to-dashboard" class="btn btn-outline btn-sm" style="margin-bottom: 1rem;">
-                                                        <i data-lucide="arrow-left" style="width: 16px"></i> Back to History
+                                                    <button id="back-to-dashboard" class="btn btn-outline btn-sm" style="margin-bottom: 1.5rem;">
+                                                        <i data-lucide="arrow-left" style="width: 16px"></i> Return to Ledger
                                                     </button>
-                                                    <h1>Payslip Viewer</h1>
+                                                    <h1>Transaction Record</h1>
                                                 </div>
+                                                <button class="btn btn-primary no-print" onclick="window.print()">
+                                                    <i data-lucide="printer" style="width: 18px"></i> Generate Printout
+                                                </button>
                                             </div>
                                             ${renderPayslip(p)}
                                         </div>
@@ -339,8 +368,9 @@ export async function renderDashboard() {
 
                 renderHistoryTable(payrolls);
 
-                // Search Logic for History
-                const historySearch = document.getElementById('history-search');
+                // Universal search adaptation
+                const historySearch = document.getElementById('universal-search');
+                historySearch.placeholder = "Search transactions...";
                 historySearch.addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
                     const filtered = payrolls.filter(p =>
@@ -358,7 +388,8 @@ export async function renderDashboard() {
 
         function renderEmployeeTable(data) {
             if (data.length === 0) {
-                tableContainer.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">No employees found matching your search.</div>';
+                tableContainer.innerHTML = '<div style="padding: 4rem; text-align: center; color: var(--text-muted);"><i data-lucide="user-plus" style="width: 48px; height: 48px; opacity: 0.2; margin-bottom: 1rem;"></i><br>No active personnel found.</div>';
+                if (window.lucide) window.lucide.createIcons();
                 return;
             }
 
@@ -366,36 +397,40 @@ export async function renderDashboard() {
                 <table class="employee-table">
                     <thead>
                         <tr>
-                            <th>Employee ID</th>
-                            <th>Employee Name</th>
-                            <th>Position</th>
-                            <th style="text-align: right">Salary</th>
-                            <th>Hired Date</th>
+                            <th>Personnel</th>
+                            <th>Designation</th>
+                            <th style="text-align: right">Annual CTC</th>
+                            <th>Effective Date</th>
                             <th style="text-align: right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${data.map(emp => {
                 const joinYear = new Date(emp.date_hired).getFullYear().toString().slice(-2);
-                const displayId = `${joinYear}${emp.id.toString().padStart(3, '0')}`;
+                const displayId = `EMP${joinYear}${emp.id.toString().padStart(3, '0')}`;
                 return `
                             <tr>
-                                <td><div class="emp-id">${displayId}</div></td>
                                 <td>
-                                    <div class="emp-name">${emp.first_name} ${emp.last_name}</div>
+                                    <div class="emp-name-cell">
+                                        <div class="emp-avatar">${emp.first_name[0]}${emp.last_name[0]}</div>
+                                        <div class="emp-info">
+                                            <span class="emp-name">${emp.first_name} ${emp.last_name}</span>
+                                            <span class="emp-id-sub">${displayId}</span>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td>${emp.position}</td>
-                                <td style="text-align: right" class="emp-salary">₹${emp.salary.toLocaleString('en-IN')}</td>
+                                <td><span style="font-weight: 500;">${emp.position}</span></td>
+                                <td style="text-align: right; font-weight: 700;">₹${(emp.salary / 100000).toFixed(2)} LPA</td>
                                 <td>${new Date(emp.date_hired).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td style="text-align: right">
                                     <div class="flex gap-2 justify-end">
-                                        <button class="btn btn-outline btn-sm process-btn" data-id="${emp.id}" data-name="${emp.first_name} ${emp.last_name}" data-salary="${emp.salary}">
-                                            <i data-lucide="calculator" style="width: 14px"></i> Payroll
+                                        <button class="btn btn-primary btn-sm process-btn" data-id="${emp.id}" data-name="${emp.first_name} ${emp.last_name}" data-salary="${emp.salary}">
+                                            <i data-lucide="calculator" style="width: 14px"></i> Run Payroll
                                         </button>
                                         <button class="btn btn-outline btn-sm edit-btn" data-id="${emp.id}">
-                                            <i data-lucide="edit-2" style="width: 14px"></i>
+                                            <i data-lucide="edit" style="width: 14px"></i>
                                         </button>
-                                        <button class="btn btn-error btn-sm delete-emp-btn" data-id="${emp.id}">
+                                        <button class="btn btn-outline btn-sm delete-emp-btn" data-id="${emp.id}" style="color: var(--error);">
                                             <i data-lucide="trash-2" style="width: 14px"></i>
                                         </button>
                                     </div>
@@ -410,15 +445,53 @@ export async function renderDashboard() {
 
             // Live Net Salary Update
             const updateNetSalary = () => {
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthName = document.getElementById('pay-month').value;
+                const year = parseInt(document.getElementById('pay-year').value) || new Date().getFullYear();
+                const monthIndex = monthNames.indexOf(monthName);
+                const totalDaysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
                 const basic = parseFloat(document.getElementById('basic-salary').value) || 0;
+                const perDay = basic / totalDaysInMonth;  // daily rate based on actual month days
+                document.getElementById('per-day-salary').value = perDay.toFixed(2);
+                const leaveDaysTaken = parseFloat(document.getElementById('leave-deduction').value) || 0;
+                const leaveDeduction = perDay * leaveDaysTaken;
                 const allowances = parseFloat(document.getElementById('allowances').value) || 0;
                 const insurance = parseFloat(document.getElementById('insurance').value) || 0;
-                const leave = parseFloat(document.getElementById('leave-deduction').value) || 0;
                 const pf = parseFloat(document.getElementById('pf-deduction').value) || 0;
-                const tax = Math.round((basic + allowances) * 0.10);
 
-                const net = (basic + allowances) - (tax + insurance + leave + pf);
-                document.getElementById('live-net-salary').textContent = `₹${net.toLocaleString('en-IN')}`;
+                // Auto-zero tax for <= 3 LPA
+                const annualLPA = parseFloat(document.getElementById('annual-ctc').value) || 0;
+                const taxPercentInput = document.getElementById('tax-percent');
+                if (annualLPA <= 3.0 && annualLPA > 0) {
+                    taxPercentInput.value = 0;
+                    taxPercentInput.setAttribute('disabled', 'true');
+                    taxPercentInput.title = 'Tax is 0% for packages of 3 LPA or below';
+                } else {
+                    taxPercentInput.removeAttribute('disabled');
+                    taxPercentInput.removeAttribute('title');
+                    // Automatically restore to default 10% if they move above 3 LPA so it doesn't stay stuck at 0
+                    if (taxPercentInput.value === '0' || taxPercentInput.value === '') {
+                        taxPercentInput.value = 10;
+                    }
+                }
+
+                const taxPercent = parseFloat(taxPercentInput.value) || 0;
+                const tax = Math.round((basic + allowances) * (taxPercent / 100));
+                document.getElementById('tax-amount').value = tax;
+
+                const grossSalary = basic + allowances;
+                const totalDeductions = leaveDeduction + tax + insurance + pf;
+                const net = grossSalary - totalDeductions;
+
+                document.getElementById('live-gross-salary').textContent = `₹${Math.round(grossSalary).toLocaleString('en-IN')}`;
+                document.getElementById('live-deductions').textContent = `- ₹${Math.round(totalDeductions).toLocaleString('en-IN')}`;
+                document.getElementById('live-net-salary').textContent = `₹${Math.max(0, Math.round(net)).toLocaleString('en-IN')}`;
+            };
+
+            // Update per-day display when month or year changes
+            const recalcWorkingDays = () => {
+                updateNetSalary();
             };
 
             // Re-add listeners for actions inside the table
@@ -426,7 +499,11 @@ export async function renderDashboard() {
                 btn.addEventListener('click', () => {
                     document.getElementById('modal-emp-name').textContent = btn.dataset.name;
                     document.getElementById('modal-emp-id').value = btn.dataset.id;
-                    document.getElementById('basic-salary').value = btn.dataset.salary;
+                    const annual = parseFloat(btn.dataset.salary) || 0;
+                    document.getElementById('annual-ctc').value = (annual / 100000).toFixed(2);
+                    const monthlyBase = (annual / 12).toFixed(0);
+                    document.getElementById('basic-salary').value = monthlyBase;
+                    document.getElementById('per-day-salary').value = (parseFloat(monthlyBase) / 26).toFixed(2);
                     document.getElementById('pay-month').value = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date());
                     updateNetSalary();
                     modal.style.display = 'flex';
@@ -434,10 +511,29 @@ export async function renderDashboard() {
             });
 
             // Listen for changes in the modal inputs
-            ['allowances', 'insurance', 'leave-deduction', 'pf-deduction'].forEach(id => {
+            ['allowances', 'insurance', 'leave-deduction', 'pf-deduction', 'tax-percent'].forEach(id => {
                 const input = document.getElementById(id);
                 if (input) input.addEventListener('input', updateNetSalary);
             });
+
+            // Recalculate working days when month, year, or weekly leave changes
+            ['pay-month', 'pay-year', 'weekly-leave-days'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', recalcWorkingDays);
+                if (el) el.addEventListener('input', recalcWorkingDays);
+            });
+
+            // Auto-calculate monthly basic when Annual CTC changes
+            const annualCtcInput = document.getElementById('annual-ctc');
+            const basicSalaryInput = document.getElementById('basic-salary');
+            if (annualCtcInput && basicSalaryInput) {
+                annualCtcInput.addEventListener('input', () => {
+                    const annualLPA = parseFloat(annualCtcInput.value) || 0;
+                    const annualAmount = annualLPA * 100000;
+                    basicSalaryInput.value = Math.round(annualAmount / 12);
+                    updateNetSalary();
+                });
+            }
 
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -448,7 +544,7 @@ export async function renderDashboard() {
                         document.getElementById('edit-last-name').value = emp.last_name;
                         document.getElementById('edit-email').value = emp.email;
                         document.getElementById('edit-position').value = emp.position;
-                        document.getElementById('edit-salary').value = emp.salary;
+                        document.getElementById('edit-salary').value = (emp.salary / 100000).toFixed(2);
                         document.getElementById('edit-date-hired').value = emp.date_hired.split('T')[0];
                         editModal.style.display = 'flex';
                     }
@@ -457,12 +553,14 @@ export async function renderDashboard() {
 
             document.querySelectorAll('.delete-emp-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
-                    if (confirm('Are you sure you want to delete this employee? All related payroll records will also be removed.')) {
+                    if (confirm('Move this employee to trash? They can be restored later or deleted permanently from the Trash section.')) {
                         try {
+                            console.log(`[DEBUG] Deleting employee ID: ${btn.dataset.id}`);
                             await api.deleteEmployee(btn.dataset.id);
-                            renderDashboard(); // Refresh
+                            showToast('Employee deleted', 'success');
+                            renderDashboard();
                         } catch (error) {
-                            alert('Error deleting employee: ' + error.message);
+                            showToast(error.message, 'error');
                         }
                     }
                 });
@@ -473,7 +571,7 @@ export async function renderDashboard() {
         renderEmployeeTable(employees);
 
         // Search Logic
-        const empSearch = document.getElementById('emp-search');
+        const empSearch = document.getElementById('universal-search');
         empSearch.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = employees.filter(emp =>
@@ -488,17 +586,31 @@ export async function renderDashboard() {
 
         processForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Recalculate monetary values that depend on formulas
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthName = document.getElementById('pay-month').value;
+            const year = parseInt(document.getElementById('pay-year').value) || new Date().getFullYear();
+            const monthIndex = monthNames.indexOf(monthName);
+            const totalDaysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+            const basic = parseFloat(document.getElementById('basic-salary').value) || 0;
+            const perDay = basic / totalDaysInMonth;
+            const leaveDaysTaken = parseFloat(document.getElementById('leave-deduction').value) || 0;
+            const monetaryLeaveDeduction = perDay * leaveDaysTaken;
+            const actualTaxAmount = parseFloat(document.getElementById('tax-amount').value) || 0;
+
             const payrollData = {
                 employee_id: parseInt(document.getElementById('modal-emp-id').value),
                 company_name: document.getElementById('company-name').value,
-                basic_salary: parseFloat(document.getElementById('basic-salary').value),
+                basic_salary: basic,
                 allowances: parseFloat(document.getElementById('allowances').value) || 0,
                 pf_deduction: parseFloat(document.getElementById('pf-deduction').value) || 0,
-                tax_deduction: Math.round((parseFloat(document.getElementById('basic-salary').value) + (parseFloat(document.getElementById('allowances').value) || 0)) * 0.10),
+                tax_deduction: actualTaxAmount,
                 insurance_deduction: parseFloat(document.getElementById('insurance').value) || 0,
-                leave_deduction: parseFloat(document.getElementById('leave-deduction').value) || 0,
-                month: document.getElementById('pay-month').value,
-                year: parseInt(document.getElementById('pay-year').value),
+                leave_deduction: monetaryLeaveDeduction,
+                month: monthName,
+                year: year,
                 issue_date: new Date().toISOString().split('T')[0],
                 status: 'paid'
             };
@@ -510,7 +622,7 @@ export async function renderDashboard() {
 
             try {
                 const response = await api.postPayroll(payrollData);
-                showToast('Payroll processed successfully!');
+                showToast('Transaction finalized successfully', 'success');
                 modal.style.display = 'none';
 
                 // Navigate to payslip view immediately
@@ -524,14 +636,17 @@ export async function renderDashboard() {
                 };
 
                 app.innerHTML = `
-                    <div class="dashboard-container">
+                    <div class="dashboard-container fade-in">
                         <div class="dashboard-header no-print">
                             <div class="header-info">
-                                <button id="back-to-dashboard" class="btn btn-outline btn-sm" style="margin-bottom: 1rem;">
+                                <button id="back-to-dashboard" class="btn btn-outline btn-sm" style="margin-bottom: 1.5rem;">
                                     <i data-lucide="arrow-left" style="width: 16px"></i> Back to Dashboard
                                 </button>
-                                <h1>Payslip Viewer</h1>
+                                <h1>Transaction Record</h1>
                             </div>
+                            <button class="btn btn-primary no-print" onclick="window.print()">
+                                <i data-lucide="printer" style="width: 18px"></i> Generate Printout
+                            </button>
                         </div>
                         ${renderPayslip(completePayroll)}
                     </div>
@@ -540,7 +655,7 @@ export async function renderDashboard() {
                 document.getElementById('back-to-dashboard').addEventListener('click', () => renderDashboard());
 
             } catch (error) {
-                showToast('Error: ' + error.message, 'error');
+                showToast(error.message, 'error');
             }
         });
 
@@ -552,17 +667,17 @@ export async function renderDashboard() {
                 last_name: document.getElementById('edit-last-name').value,
                 email: document.getElementById('edit-email').value,
                 position: document.getElementById('edit-position').value,
-                salary: parseFloat(document.getElementById('edit-salary').value),
+                salary: parseFloat(document.getElementById('edit-salary').value) * 100000,
                 date_hired: document.getElementById('edit-date-hired').value
             };
 
             try {
                 await api.updateEmployee(id, employeeData);
-                showToast('Employee updated successfully!');
+                showToast('Personnel file synchronized', 'success');
                 editModal.style.display = 'none';
                 renderDashboard();
             } catch (error) {
-                showToast('Error updating employee: ' + error.message, 'error');
+                showToast(error.message, 'error');
             }
         });
 
@@ -576,7 +691,11 @@ export async function renderDashboard() {
             router.navigate('/add-employee');
         });
 
+        document.getElementById('view-trash-btn')?.addEventListener('click', () => {
+            router.navigate('/trash');
+        });
+
     } catch (error) {
-        app.innerHTML = `<div class="dashboard-container error">${error.message}</div>`;
+        app.innerHTML = `<div class="dashboard-container error-box">${error.message}</div>`;
     }
 }

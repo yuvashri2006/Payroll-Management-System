@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Backend (Direct Node)",
+            "program": "${workspaceFolder}/index.js",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Frontend (Chrome)",
+            "url": "http://localhost:3030",
+            "webRoot": "${workspaceFolder}/../client"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Full Project (Server + Chrome)",
+            "configurations": [
+                "Start Backend (Direct Node)",
+                "Launch Frontend (Chrome)"
+            ]
+        }
+    ]
+}

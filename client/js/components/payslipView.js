@@ -1,95 +1,107 @@
 export function renderPayslip(p) {
     const pf = p.pf_deduction || 0;
-    const tax = Math.round((p.basic_salary + (p.allowances || 0)) * 0.10);
+    const tax = p.tax_deduction || Math.round((p.basic_salary + (p.allowances || 0)) * 0.10);
+    const insurance = p.insurance_deduction || 0;
+    const leave = p.leave_deduction || 0;
 
     return `
-        <div class="payslip-container printable">
+        <div class="payslip-container printable fade-in">
             <div class="payslip-header">
-                <div>
-                    <h2 style="margin:0">${p.company_name}</h2>
-                    <p style="color:var(--text-muted)">Pon Industries</p>
+                <div class="company-branding">
+                    <h2 style="margin:0; background: linear-gradient(135deg, var(--primary), #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${p.company_name}</h2>
+                    <p style="font-weight: 500; color: var(--text-muted); font-size: 0.875rem;">Official Payroll Document</p>
                 </div>
-                <div style="text-align: right">
-                    <h3 style="margin:0">PAYSLIP</h3>
-                    <p>#PS-${p.id.toString().padStart(5, '0')}</p>
+                <div class="payslip-title">
+                    <h1 style="font-size: 1.25rem; font-weight: 800; color: var(--secondary); letter-spacing: 0.1em;">PAYSLIP</h1>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">#PS-${p.id.toString().padStart(6, '0')}</p>
                 </div>
             </div>
 
-            <div class="payslip-meta">
+            <div class="payslip-meta" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 3.5rem; background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md);">
                 <div class="meta-item">
-                    <label>Employee Name</label>
-                    <p>${p.first_name} ${p.last_name}</p>
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Employee</label>
+                    <p style="font-weight: 700; color: var(--secondary);">${p.first_name} ${p.last_name}</p>
                 </div>
                 <div class="meta-item">
-                    <label>Designation</label>
-                    <p>${p.position}</p>
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Designation</label>
+                    <p style="font-weight: 600;">${p.position}</p>
                 </div>
                 <div class="meta-item">
-                    <label>Month / Year</label>
-                    <p>${p.month} ${p.year}</p>
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Period</label>
+                    <p style="font-weight: 600;">${p.month} ${p.year}</p>
                 </div>
                 <div class="meta-item">
-                    <label>Issue Date</label>
-                    <p>${new Date(p.issue_date).toLocaleDateString()}</p>
+                    <label style="display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Issued On</label>
+                    <p style="font-weight: 600;">${new Date(p.issue_date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                 </div>
             </div>
 
             <div class="payslip-grid">
                 <div class="grid-section">
-                    <h4>Earnings</h4>
-                    <div class="line-item">
-                        <span>Basic Salary</span>
-                        <span>₹${p.basic_salary.toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-item">
-                        <span>Allowances</span>
-                        <span>₹${(p.allowances || 0).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-total">
-                        <span>Gross Earnings</span>
-                        <span>₹${(p.basic_salary + (p.allowances || 0)).toLocaleString('en-IN')}</span>
+                    <h4 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 0.8125rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em;">Earnings Spectrum</h4>
+                    <div class="payslip-table">
+                        <div class="payslip-row">
+                            <span>Basic Base Salary</span>
+                            <span>₹${(p.basic_salary || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row">
+                            <span>Performance Allowances</span>
+                            <span>₹${(p.allowances || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row total" style="background: var(--bg-main); padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                            <span style="color: var(--secondary); font-weight: 800;">GROSS REVENUE</span>
+                            <span style="color: var(--secondary); font-weight: 800;">₹${((p.basic_salary || 0) + (p.allowances || 0)).toLocaleString('en-IN')}</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="grid-section">
-                    <h4>Deductions</h4>
-                    <div class="line-item">
-                        <span>Provident Fund (12%)</span>
-                        <span>₹${pf.toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-item">
-                        <span>Income Tax (10%)</span>
-                        <span>₹${tax.toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-item">
-                        <span>Insurance</span>
-                        <span>₹${(p.insurance_deduction || 0).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-item">
-                        <span>Leave / Other</span>
-                        <span>₹${(p.leave_deduction || 0).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div class="line-total">
-                        <span>Total Deductions</span>
-                        <span>₹${(pf + tax + (p.insurance_deduction || 0) + (p.leave_deduction || 0)).toLocaleString('en-IN')}</span>
+                    <h4 style="border-bottom: 2px solid #fee2e2; padding-bottom: 0.5rem; margin-bottom: 1.5rem; font-size: 0.8125rem; color: var(--error); text-transform: uppercase; letter-spacing: 0.1em;">Deductions Ledger</h4>
+                    <div class="payslip-table">
+                        <div class="payslip-row">
+                            <span>Statutory PF (12%)</span>
+                            <span>₹${(pf || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row">
+                            <span>Taxation Withheld (10%)</span>
+                            <span>₹${(tax || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row">
+                            <span>Corporate Insurance</span>
+                            <span>₹${(insurance || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row">
+                            <span>Unpaid Absence Penalties</span>
+                            <span>₹${(leave || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="payslip-row total" style="background: #fef2f2; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                            <span style="color: var(--error); font-weight: 800;">TOTAL DEDUCTIONS</span>
+                            <span style="color: var(--error); font-weight: 800;">₹${((pf || 0) + (tax || 0) + (insurance || 0) + (leave || 0)).toLocaleString('en-IN')}</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="payslip-footer">
-                <div class="net-pay-box">
-                    <label>Net Salary Payable</label>
-                    <div class="amount">₹${p.net_salary.toLocaleString('en-IN')}</div>
+            <div class="payslip-footer" style="margin-top: 4rem;">
+                <div class="net-pay-highlight">
+                    <label>NET LIQUID DISBURSEMENT</label>
+                    <div class="amount">₹${(p.net_salary || 0).toLocaleString('en-IN')}</div>
+                    <p style="font-size: 0.875rem; opacity: 0.8; margin-top: 1rem; font-weight: 400;">Final settlement for the current period</p>
                 </div>
-                <p style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 2rem;">
-                    This is a computer generated document and does not require a signature.
-                </p>
+                
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.8;">
+                        <p><strong>Notes:</strong></p>
+                        <p>1. This is a system-generated secure document.</p>
+                        <p>2. Values are calculated based on corporate attendance records.</p>
+                        <p>3. For discrepancies, contact the Finance Department.</p>
+                    </div>
+                    <div style="text-align: right; opacity: 0.5;">
+                        <i data-lucide="shield-check" style="width: 32px; height: 32px; color: var(--primary);"></i>
+                        <p style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem;">Verified Digital Output</p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="flex gap-2 justify-end no-print" style="margin-top: 2rem">
-            <button onclick="window.print()" class="btn btn-primary">
-                <i data-lucide="printer" style="width: 16px"></i> Print Payslip
-            </button>
         </div>
     `;
 }

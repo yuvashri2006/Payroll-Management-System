@@ -1,5 +1,5 @@
 // API Service - handles all HTTP requests to the backend
-const API_BASE_URL = 'http://localhost:3030/api';
+const API_BASE_URL = `${window.location.origin}/api`;
 
 export const api = {
     // Login user
@@ -67,7 +67,29 @@ export const api = {
         const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
             method: 'DELETE'
         });
-        if (!response.ok) throw new Error('Failed to delete employee');
+        if (!response.ok) throw new Error('Failed to move employee to trash');
+        return await response.json();
+    },
+
+    async getTrashedEmployees() {
+        const response = await fetch(`${API_BASE_URL}/employees/trash`);
+        if (!response.ok) throw new Error('Failed to fetch trashed employees');
+        return await response.json();
+    },
+
+    async restoreEmployee(id) {
+        const response = await fetch(`${API_BASE_URL}/employees/${id}/restore`, {
+            method: 'PUT'
+        });
+        if (!response.ok) throw new Error('Failed to restore employee');
+        return await response.json();
+    },
+
+    async permanentDeleteEmployee(id) {
+        const response = await fetch(`${API_BASE_URL}/employees/${id}/permanent`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to permanently delete employee');
         return await response.json();
     },
 
@@ -101,4 +123,17 @@ export const api = {
 
         return await response.json();
     },
+
+    // Verify employee and fetch payrolls by name, ID, month, and year
+    async verifyEmployee(fullName, employeeId, month, year) {
+        const url = `${API_BASE_URL}/payrolls/verify?fullName=${encodeURIComponent(fullName)}&employeeId=${encodeURIComponent(employeeId)}&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Verification failed');
+        }
+
+        return await response.json();
+    }
 };

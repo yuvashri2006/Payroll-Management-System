@@ -15,11 +15,12 @@ const columns = [
     'net_salary DECIMAL(10, 2)',
     'month TEXT',
     'year INTEGER',
-    'issue_date DATE'
+    'issue_date DATE',
+    'rejection_reason TEXT'
 ];
 
 db.serialize(() => {
-    // Check existing columns to avoid errors on column already exists
+    // Check and add columns for payrolls
     db.all("PRAGMA table_info(payrolls)", (err, rows) => {
         if (err) {
             console.error(err);
@@ -42,6 +43,22 @@ db.serialize(() => {
 
         // Update status default if needed (the previous schema had pending, user wants paid/processed)
         db.run("UPDATE payrolls SET status = 'paid' WHERE status = 'pending'");
+    });
+
+    // Add soft delete to employees
+    db.all("PRAGMA table_info(employees)", (err, rows) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        if (!rows.map(r => r.name).includes('is_deleted')) {
+            db.run("ALTER TABLE employees ADD COLUMN is_deleted BOOLEAN DEFAULT 0", (err) => {
+                if (err) console.error(`Error adding is_deleted to employees:`, err.message);
+                else console.log(`Added column: is_deleted to employees`);
+            });
+        } else {
+            console.log(`Column is_deleted already exists in employees.`);
+        }
     });
 });
 
