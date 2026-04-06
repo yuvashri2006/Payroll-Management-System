@@ -186,16 +186,21 @@ export default function Dashboard() {
     // Render Payslip mode
     if (viewingPayslip) {
         return (
-            <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+            <div className="layout-container">
                 <Sidebar user={user} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-                <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div className="main-content">
                     <div className="dashboard-container fade-in">
-                        <div className="dashboard-header no-print">
-                            <div className="header-info">
-                                <button onClick={() => setViewingPayslip(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '1.5rem' }}>
-                                    <ArrowLeft style={{ width: '16px' }} /> Return to Ledger
+                        <div className="page-header no-print">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+                                    <Menu size={24} />
                                 </button>
-                                <h1>Transaction Record</h1>
+                                <div>
+                                    <button onClick={() => setViewingPayslip(null)} className="btn btn-outline btn-sm" style={{ marginBottom: '0.5rem' }}>
+                                        <ArrowLeft style={{ width: '16px' }} /> Return to Ledger
+                                    </button>
+                                    <h1 style={{ margin: 0 }}>Transaction Record</h1>
+                                </div>
                             </div>
                             <button className="btn btn-primary no-print" onClick={() => window.print()}>
                                 <Printer style={{ width: '18px' }} /> Generate Printout
@@ -213,19 +218,17 @@ export default function Dashboard() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+        <div className="layout-container">
             <Sidebar user={user} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div className="main-content">
                 <div className="dashboard-container fade-in">
                     {error && <div className="error-box" style={{ marginBottom: '1rem' }}>{error}</div>}
             
-            <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <div className="header-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {!sidebarOpen && (
-                        <button onClick={() => setSidebarOpen(true)} className="btn btn-outline" style={{ padding: '0.5rem', border: 'none', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                            <Menu style={{ width: '24px', height: '24px', color: 'var(--primary)' }} />
-                        </button>
-                    )}
+            <div className="page-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+                        <Menu size={24} />
+                    </button>
                     <div>
                         <h1 style={{ margin: 0 }}>Payroll Dashboard</h1>
                         <p style={{ margin: 0, marginTop: '0.25rem' }}>Enterprise Management System</p>
@@ -621,7 +624,7 @@ export default function Dashboard() {
                 </div>
             )}
 
-            </div>
+                </div>
             </div>
         </div>
     );

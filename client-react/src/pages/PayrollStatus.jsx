@@ -72,11 +72,11 @@ export default function PayrollStatus() {
 
     if (viewingPayslip) {
         return (
-            <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+            <div className="layout-container">
                 <Sidebar user={user} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-                <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div className="main-content">
                     <div className="dashboard-container fade-in">
-                        <div className="dashboard-header no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                        <div className="page-header no-print">
                             <button onClick={() => setViewingPayslip(null)} className="btn btn-outline btn-sm">
                                 <ArrowLeft style={{ width: '16px' }} /> Back
                             </button>
@@ -92,26 +92,24 @@ export default function PayrollStatus() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+        <div className="layout-container">
             <Sidebar user={user} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div className="main-content">
                 <div className="dashboard-container fade-in">
 
                     {/* Header */}
-                    <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div className="page-header">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            {!sidebarOpen && (
-                                <button onClick={() => setSidebarOpen(true)} className="btn btn-outline" style={{ padding: '0.5rem', border: 'none', background: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                                    <Menu style={{ width: '24px', height: '24px', color: 'var(--primary)' }} />
-                                </button>
-                            )}
+                            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
+                                <Menu size={24} />
+                            </button>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: cfg.bg, border: `1px solid ${cfg.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: cfg.bg, border: `1px solid ${cfg.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                     {cfg.icon}
                                 </div>
                                 <div>
-                                    <h1 style={{ margin: 0 }}>{cfg.label}</h1>
-                                    <p style={{ margin: 0, marginTop: '0.2rem' }}>
+                                    <h1 style={{ margin: 0, fontSize: '1.5rem' }}>{cfg.label}</h1>
+                                    <p style={{ margin: 0, marginTop: '0.2rem', fontSize: '0.9rem' }}>
                                         {filtered.length} record{filtered.length !== 1 ? 's' : ''} found
                                     </p>
                                 </div>

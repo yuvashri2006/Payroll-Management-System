@@ -14,24 +14,15 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <aside style={{
-            width: isOpen ? '260px' : '0px',
-            opacity: isOpen ? 1 : 0,
-            overflow: 'hidden',
-            background: '#ffffff', // Changed to light color
-            color: '#111827', // Dark text
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            position: 'sticky',
-            top: 0,
-            flexShrink: 0,
-            borderRight: '1px solid var(--border)',
-            boxShadow: '4px 0 15px rgba(0,0,0,0.02)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            whiteSpace: 'nowrap',
-            zIndex: 40
-        }}>
+        <>
+            <div 
+                className={`sidebar-overlay ${isOpen ? 'visible' : ''}`}
+                onClick={() => setIsOpen(false)}
+            />
+            <aside 
+                className={`sidebar ${isOpen ? 'open' : ''}`}
+                style={{ width: isOpen ? 'var(--sidebar-width)' : '0px', opacity: isOpen ? 1 : 0 }}
+            >
             <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>
                     <LayoutDashboard size={24} /> Dashboard
@@ -97,11 +88,11 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
 
             <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>
                         {user && user.username ? user.username.charAt(0).toUpperCase() : <User size={20} />}
                     </div>
-                    <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>{user ? user.username : 'User'}</div>
+                    <div style={{ overflow: 'hidden' }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#111827', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user ? user.username : 'User'}</div>
                         <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'capitalize' }}>{user ? user.role : 'Employee'}</div>
                     </div>
                 </div>
@@ -110,6 +101,7 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
                 </button>
             </div>
         </aside>
+        </>
     );
 }
 
