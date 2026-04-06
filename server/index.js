@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from React build directory
-app.use(express.static(path.join(__dirname, '../client-react/dist')));
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/payroll';
 
@@ -370,10 +370,11 @@ app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ message: "API endpoint not found" });
     }
-    res.sendFile(path.join(__dirname, '../client-react/dist/index.html'));
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
-app.listen(PORT, () => {
+if (require.main === module) {
+    app.listen(PORT, () => {
     // Get local network IP
     const interfaces = os.networkInterfaces();
     let networkIP = 'localhost';
@@ -394,4 +395,7 @@ app.listen(PORT, () => {
     console.log(`📡 Network access: http://${networkIP}:${PORT}`);
     console.log(`🛠️  API Endpoints: http://${networkIP}:${PORT}/api`);
     console.log('================================================\n');
-});
+    });
+}
+
+module.exports = app;

@@ -4,12 +4,12 @@
   "description": "Premium React & Node.js Payroll Management System",
   "scripts": {
     "install:server": "cd server && npm install",
-    "install:client": "cd client-react && npm install",
+    "install:client": "cd client && npm install",
     "install:all": "npm run install:server && npm run install:client",
-    "build:client": "cd client-react && npm run build",
+    "build:client": "cd client && npm run build",
     "start": "cd server && npm start",
     "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client-react && npm run dev",
+    "dev:client": "cd client && npm run dev",
     "deploy:build": "npm run install:all && npm run build:client"
   },
   "keywords": [],
