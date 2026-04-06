@@ -1,8 +1,6 @@
-const API_BASE_URL = '/api';
-
 export const api = {
     async login(username, password, role) {
-        const response = await fetch(`${API_BASE_URL}/login`, {
+        const response = await fetch(`/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password, role }),
@@ -14,17 +12,17 @@ export const api = {
         return await response.json();
     },
     async getEmployees() {
-        const response = await fetch(`${API_BASE_URL}/employees`);
+        const response = await fetch(`/employees`);
         if (!response.ok) throw new Error('Failed to fetch employee data.');
         return await response.json();
     },
     async getPayrolls() {
-        const response = await fetch(`${API_BASE_URL}/payrolls`);
+        const response = await fetch(`/payrolls`);
         if (!response.ok) throw new Error('Failed to fetch payroll data.');
         return await response.json();
     },
     async postPayroll(payrollData) {
-        const response = await fetch(`${API_BASE_URL}/payrolls`, {
+        const response = await fetch(`/payrolls`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payrollData),
@@ -33,7 +31,7 @@ export const api = {
         return await response.json();
     },
     async updateEmployee(id, employeeData) {
-        const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
+        const response = await fetch(`/employees/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(employeeData)
@@ -42,27 +40,27 @@ export const api = {
         return await response.json();
     },
     async deleteEmployee(id) {
-        const response = await fetch(`${API_BASE_URL}/employees/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/employees/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Failed to move employee to trash');
         return await response.json();
     },
     async getTrashedEmployees() {
-        const response = await fetch(`${API_BASE_URL}/employees/trash`);
+        const response = await fetch(`/employees/trash`);
         if (!response.ok) throw new Error('Failed to fetch trashed employees');
         return await response.json();
     },
     async restoreEmployee(id) {
-        const response = await fetch(`${API_BASE_URL}/employees/${id}/restore`, { method: 'PUT' });
+        const response = await fetch(`/employees/${id}/restore`, { method: 'PUT' });
         if (!response.ok) throw new Error('Failed to restore employee');
         return await response.json();
     },
     async permanentDeleteEmployee(id) {
-        const response = await fetch(`${API_BASE_URL}/employees/${id}/permanent`, { method: 'DELETE' });
+        const response = await fetch(`/employees/${id}/permanent`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Failed to permanently delete employee');
         return await response.json();
     },
     async updatePayrollStatus(id, status, rejection_reason) {
-        const response = await fetch(`${API_BASE_URL}/payrolls/${id}/status`, {
+        const response = await fetch(`/payrolls/${id}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status, rejection_reason }),
@@ -71,17 +69,17 @@ export const api = {
         return await response.json();
     },
     async deletePayroll(id) {
-        const response = await fetch(`${API_BASE_URL}/payrolls/${id}`, { method: 'DELETE' });
+        const response = await fetch(`/payrolls/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Failed to delete payroll record');
         return await response.json();
     },
     async getMyPayrolls(userId) {
-        const response = await fetch(`${API_BASE_URL}/payrolls/me?userId=${userId}`);
+        const response = await fetch(`/payrolls/me?userId=${userId}`);
         if (!response.ok) throw new Error('Failed to fetch your payrolls');
         return await response.json();
     },
     async addEmployee(employeeData) {
-        const response = await fetch(`${API_BASE_URL}/employees`, {
+        const response = await fetch(`/employees`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(employeeData),
@@ -90,7 +88,7 @@ export const api = {
         return await response.json();
     },
     async verifyEmployee(fullName, employeeId, month, year) {
-        const url = `${API_BASE_URL}/payrolls/verify?fullName=${encodeURIComponent(fullName)}&employeeId=${encodeURIComponent(employeeId)}&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`;
+        const url = `/payrolls/verify?fullName=${encodeURIComponent(fullName)}&employeeId=${encodeURIComponent(employeeId)}&month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`;
         const response = await fetch(url);
         if (!response.ok) {
             const error = await response.json();
