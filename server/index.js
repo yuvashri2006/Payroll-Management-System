@@ -22,6 +22,11 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 
 const mongoURI = process.env.MONGODB_URI;
 
+if (!mongoURI) {
+    console.error('❌ CRITICAL ERROR: MONGODB_URI is not defined in .env file!');
+    process.exit(1);
+}
+
 let isConnected = false;
 const connectDB = async () => {
     if (isConnected) return;
@@ -30,16 +35,22 @@ const connectDB = async () => {
             serverSelectionTimeoutMS: 5000,
         });
         isConnected = !!db.connections[0].readyState;
-        console.log(`Connected to MongoDB: ${mongoose.connection.name}`);
+        console.log(`✅ Connected to MongoDB: ${mongoose.connection.name}`);
     } catch (error) {
-        console.error('Database connection error:', error);
+        console.error('❌ Database connection error:', error.message);
+        // Don't exit process here, allow retries via middleware
     }
 };
 
-// Database connection middleware
+// Database connection middleware with safety
 app.use(async (req, res, next) => {
-    await connectDB();
-    next();
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('Middleware DB Error:', err.message);
+        res.status(503).json({ error: 'Database connection failed' });
+    }
 });
 
 // API Routes

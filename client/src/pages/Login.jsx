@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldCheck, AlertCircle, User, Lock, ArrowRight, Shield } from 'lucide-react';
+import { api } from '../api';
 
 export default function Login() {
     const [role, setRole] = useState('admin');
@@ -26,16 +27,7 @@ export default function Login() {
         e.preventDefault();
         try {
             setError('');
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, role })
-            });
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || data.error || 'Login failed');
-            }
+            const data = await api.login(username, password, role);
 
             if (data.user) {
                 localStorage.setItem('user', JSON.stringify(data.user));
