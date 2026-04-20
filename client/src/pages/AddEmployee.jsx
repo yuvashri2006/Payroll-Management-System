@@ -27,6 +27,7 @@ export default function AddEmployee() {
 
         const formData = new FormData(e.target);
         const employeeData = {
+            employee_id: formData.get('employee_id'),
             first_name: formData.get('first_name'),
             last_name: formData.get('last_name'),
             email: formData.get('email'),
@@ -81,6 +82,11 @@ export default function AddEmployee() {
                                     <label>Last Name</label>
                                     <input type="text" name="last_name" placeholder="Doe" required />
                                 </div>
+                            </div>
+                            
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>Employee ID</label>
+                                <input type="text" name="employee_id" placeholder="EMP001" required />
                             </div>
                             
                             <div className="form-group" style={{ marginTop: '1rem' }}>

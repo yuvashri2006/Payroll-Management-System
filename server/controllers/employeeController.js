@@ -11,9 +11,9 @@ exports.getEmployees = async (req, res) => {
 
 exports.addEmployee = async (req, res) => {
     try {
-        const { first_name, last_name, email, position, salary, date_hired } = req.body;
+        const { employee_id, first_name, last_name, email, position, salary, date_hired } = req.body;
 
-        if (!first_name || !last_name || !email || !position || !salary || !date_hired) {
+        if (!employee_id || !first_name || !last_name || !email || !position || !salary || !date_hired) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -27,6 +27,7 @@ exports.addEmployee = async (req, res) => {
         const user = await User.create({ username, password: defaultPassword, role: 'employee' });
         const employee = await Employee.create({
             user_id: user._id,
+            employee_id,
             first_name, last_name, email, position, salary, date_hired
         });
 

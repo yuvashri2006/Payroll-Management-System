@@ -51,14 +51,6 @@ export default function EmployeePortal() {
         setVerifyError('');
         setVerifying(true);
 
-        const hiringYearShort = parseInt(verifyId.substring(0, 2));
-        const hiringYear = 2000 + hiringYearShort;
-        if (Number(verifyYear) < hiringYear) {
-            setVerifyError(`You cannot access payslips prior to your hiring year (${hiringYear}).`);
-            setVerifying(false);
-            return;
-        }
-
         try {
             const results = await api.verifyEmployee(verifyName, verifyId, verifyMonth, verifyYear);
             setPayrolls(results);
@@ -126,8 +118,18 @@ export default function EmployeePortal() {
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                                {isConfirmed && <span style={{ color: 'var(--accent)', fontWeight: 700 }}><CheckCircle size={16} /></span>}
-                                {isRejected && <span style={{ color: 'var(--error)', fontWeight: 700 }}><XCircle size={16} /></span>}
+                                {isConfirmed && <span style={{ color: 'var(--accent)', fontWeight: 700 }}><CheckCircle size={16} />Confirmed</span>}
+                                {isRejected && <span style={{ color: 'var(--error)', fontWeight: 700 }}><XCircle size={16} />Rejected</span>}
+                                {!isConfirmed && !isRejected && (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button className="btn btn-primary btn-sm" onClick={() => handleConfirm(viewingPayslip.id)}>
+                                            Confirm
+                                        </button>
+                                        <button className="btn btn-outline btn-sm" style={{ color: 'var(--error)' }} onClick={() => openRejectModal(viewingPayslip)}>
+                                            Reject
+                                        </button>
+                                    </div>
+                                )}
                                 <button className="btn btn-outline" onClick={() => window.print()}>
                                     <Printer size={18} /> Print
                                 </button>
@@ -190,17 +192,29 @@ export default function EmployeePortal() {
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     {confirmed[p.id] ? (
-                                                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}><CheckCircle size={14} /></span>
+                                                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}><CheckCircle size={14} />Confirmed</span>
                                                     ) : rejected[p.id] ? (
-                                                        <span style={{ color: 'var(--error)', fontWeight: 600 }}><XCircle size={14} /></span>
+                                                        <span style={{ color: 'var(--error)', fontWeight: 600 }}><XCircle size={14} />Rejected</span>
                                                     ) : (
-                                                        <span style={{ color: 'var(--text-muted)' }}><FileText size={14} /></span>
+                                                        <span style={{ color: 'var(--text-muted)' }}><FileText size={14} />Pending</span>
                                                     )}
                                                 </td>
-                                                <td style={{ textAlign: 'right' }}>
-                                                    <button className="btn btn-outline btn-sm" onClick={() => setViewingPayslip(p)}>
-                                                        <Eye style={{ width: '14px' }} /> View
-                                                    </button>
+                                                 <td style={{ textAlign: 'right' }}>
+                                                    <div className="flex gap-2 justify-end">
+                                                        {!confirmed[p.id] && !rejected[p.id] && (
+                                                            <>
+                                                                <button className="btn btn-primary btn-sm" onClick={() => handleConfirm(p.id)} title="Confirm Receipt">
+                                                                    <CheckCircle size={14} />
+                                                                </button>
+                                                                <button className="btn btn-outline btn-sm" onClick={() => openRejectModal(p)} title="Raise Issue">
+                                                                    <XCircle size={14} style={{ color: 'var(--error)' }} />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        <button className="btn btn-outline btn-sm" onClick={() => setViewingPayslip(p)}>
+                                                            <Eye style={{ width: '14px' }} /> View
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -282,6 +296,34 @@ export default function EmployeePortal() {
                     </button>
                 </div>
             </div>
+
+            {/* Rejection Modal */}
+            {rejectModal && (
+                <div className="modal-overlay" style={{ display: 'flex', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                    <div className="modal-content" style={{ backgroundColor: 'var(--bg-card)', padding: '2rem', borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '400px', boxShadow: 'var(--shadow-xl)' }}>
+                        <div className="modal-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0 }}>Raise Concern</h3>
+                            <button onClick={() => setRejectModal(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)' }}>&times;</button>
+                        </div>
+                        <form onSubmit={handleRejectSubmit}>
+                            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>Reason for Rejection</label>
+                                <textarea
+                                    value={rejectReason}
+                                    onChange={e => setRejectReason(e.target.value)}
+                                    placeholder="Please describe the issue with this payslip (e.g., incorrect base pay, missing allowance)..."
+                                    required
+                                    style={{ width: '100%', minHeight: '100px', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-main)', resize: 'vertical' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>Submit Issue</button>
+                                <button type="button" onClick={() => setRejectModal(null)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

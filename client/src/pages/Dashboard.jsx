@@ -90,6 +90,7 @@ export default function Dashboard() {
         try {
             const formData = new FormData(e.target);
             const data = {
+                employee_id: formData.get('employee_id'),
                 first_name: formData.get('first_name'),
                 last_name: formData.get('last_name'),
                 email: formData.get('email'),
@@ -305,8 +306,7 @@ export default function Dashboard() {
                                 </thead>
                                 <tbody>
                                     {filteredEmployees.map(emp => {
-                                        const joinYear = new Date(emp.date_hired).getFullYear().toString().slice(-2);
-                                        const displayId = `EMP${joinYear}${emp.id.toString().padStart(3, '0')}`;
+                                        const displayId = emp.employee_id || "N/A";
                                         return (
                                             <tr key={emp.id}>
                                                 <td>
@@ -514,6 +514,10 @@ export default function Dashboard() {
                             <button onClick={() => setShowEditModal(false)} className="close-btn">&times;</button>
                         </div>
                         <form onSubmit={handleEditSave}>
+                            <div className="form-group">
+                                <label>Employee ID</label>
+                                <input type="text" name="employee_id" defaultValue={selectedEmployee.employee_id} required />
+                            </div>
                             <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div className="form-group">
                                     <label>First Name</label>

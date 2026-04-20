@@ -67,7 +67,10 @@ exports.getMyPayrolls = async (req, res) => {
 exports.verifyPayroll = async (req, res) => {
     try {
         const { fullName, employeeId, month, year } = req.query;
-        const employees = await Employee.find({
+        
+        // Find employee by employee_id and verify fullName matches
+        const matchedEmployee = await Employee.findOne({
+            employee_id: employeeId,
             $expr: {
                 $eq: [
                     { $toLower: { $trim: { input: { $concat: ["$first_name", " ", "$last_name"] } } } },
@@ -76,12 +79,9 @@ exports.verifyPayroll = async (req, res) => {
             }
         });
 
-        if (!employees.length) return res.status(404).json({ message: "Invalid Employee Name." });
-
-        const joinYearShort = employeeId.substring(0, 2);
-        const matchedEmployee = employees.find(emp => (emp.date_hired || '').substring(2, 4) === joinYearShort);
-
-        if (!matchedEmployee) return res.status(404).json({ message: "Employee ID/Year mismatch." });
+        if (!matchedEmployee) {
+            return res.status(404).json({ message: "Invalid Employee ID or Name mismatch." });
+        }
 
         const payrolls = await Payroll.find({
             employee_id: matchedEmployee._id, month, year: parseInt(year)
